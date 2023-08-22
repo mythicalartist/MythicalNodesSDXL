@@ -26,30 +26,106 @@ SOFTWARE.
 
 """
 import nodes
+import comfy.samplers
 
-class MythicalWidthHeight:
+
+class MythicalInputParamaters:
+    RETURN_TYPES = ("INT", "INT", comfy.samplers.KSampler.SAMPLERS, comfy.samplers.KSampler.SCHEDULERS, "PARAMETERS")
+    RETURN_NAMES = ("image_width", "image_height", "sampler_name", "scheduler", "parameters")
+    FUNCTION = "process"
+
+    CATEGORY = "Mythical/UI/Inputs"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {
+            "required": {
+                "image_width": ("INT", {"default": 1024, "min": 0, "max": nodes.MAX_RESOLUTION, "step": 8}),
+                "image_height": ("INT", {"default": 1024, "min": 0, "max": nodes.MAX_RESOLUTION, "step": 8}),
+                "sampler_name": (comfy.samplers.KSampler.SAMPLERS,),
+                "scheduler": (comfy.samplers.KSampler.SCHEDULERS,)}
+        }
+
+    def process(self, image_width, image_height, sampler_name, scheduler):
+        parameters = {}
+        parameters["image_width"] = image_width
+        parameters["image_height"] = image_height
+        parameters["sampler_name"] = sampler_name
+        parameters["scheduler"] = scheduler
+        return (image_width, image_height, sampler_name, scheduler, parameters)
+
+
+class MythicalParameterProcessor:
+    RETURN_TYPES = ("INT", "INT", comfy.samplers.KSampler.SAMPLERS, comfy.samplers.KSampler.SCHEDULERS, "PARAMETERS")
+    RETURN_NAMES = ("image_width", "image_height", "sampler_name", "scheduler", "parameters")
+    FUNCTION = "process"
+
     @classmethod
     def INPUT_TYPES(s):
-        return {"required": {
-                    "image_width": ("INT", {"default": 1024, "min": 0, "max": nodes.MAX_RESOLUTION, "step": 8}),
-                    "image_height": ("INT", {"default": 1024, "min": 0, "max": nodes.MAX_RESOLUTION, "step": 8}),
-                    },
-                }
+        return {
+            "required": {
+                "parameters": ("PARAMETERS",),
+            },
+        }
 
-    RETURN_TYPES = ("INT", "INT", )
+    CATEGORY = "Mythical/UI/Inputs"
+
+    def process(self, parameters):
+        return (
+        parameters["image_width"], parameters["image_height"], parameters["sampler_name"], parameters["scheduler"],
+        parameters
+        )
+
+
+class MythicalSamplerScheduler:
+    RETURN_TYPES = (comfy.samplers.KSampler.SAMPLERS, comfy.samplers.KSampler.SCHEDULERS,)
+    RETURN_NAMES = ("sampler_name", "scheduler",)
+    FUNCTION = "get_names"
+
+    CATEGORY = "Mythical/UI/Inputs"
+
+    @classmethod
+    def INPUT_TYPES(cls):
+        return {"required": {"sampler_name": (comfy.samplers.KSampler.SAMPLERS,),
+                             "scheduler": (comfy.samplers.KSampler.SCHEDULERS,)}}
+
+    def get_names(self, sampler_name, scheduler):
+        return (image_width, image_height, sampler_name, scheduler)
+
+
+class MythicalWidthHeight:
+    RETURN_TYPES = ("INT", "INT",)
     RETURN_NAMES = ("image_width", "image_height",)
     FUNCTION = "mux"
+
+    CATEGORY = "Mythical/UI/Inputs"
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "image_width": ("INT", {"default": 1024, "min": 0, "max": nodes.MAX_RESOLUTION, "step": 8}),
+                "image_height": ("INT", {"default": 1024, "min": 0, "max": nodes.MAX_RESOLUTION, "step": 8}),
+            },
+        }
 
     def mux(self, image_width, image_height):
         return (image_width, image_height)
 
-NODE_CLASS_MAPPINGS = {
-    "MythicalWidhtHeightTuple": MythicalWidthHeight,
-}
 
+NODE_CLASS_MAPPINGS = {
+    "MythicalInputParamaters": MythicalInputParamaters,
+    "MythicalParameterProcessor": MythicalParameterProcessor,
+    "MythicalWidthHeight": MythicalWidthHeight,
+    "MythicalSamplerScheduler": MythicalSamplerScheduler,
+}
 
 # Human readable names for the nodes
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-     "MythicalWidthHeight": "A simple width and height input",
+    "MythicalInputParamaters": "Input Parameters",
+    "MythicalParameterProcessor": "Parameter Processor",
+    "MythicalWidthHeight": "Width and height input",
+    "MythicalSamplerScheduler": "Sampler scheduler input",
+
 }
