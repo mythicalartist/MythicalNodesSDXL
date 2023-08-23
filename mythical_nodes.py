@@ -30,8 +30,11 @@ import comfy.samplers
 
 
 class MythicalInputParamaters:
-    RETURN_TYPES = ("INT", "INT", comfy.samplers.KSampler.SAMPLERS, comfy.samplers.KSampler.SCHEDULERS, "PARAMETERS")
-    RETURN_NAMES = ("image_width", "image_height", "sampler_name", "scheduler", "parameters")
+    RETURN_TYPES = (
+        "INT", "INT", 'STRING', 'STRING', comfy.samplers.KSampler.SAMPLERS, comfy.samplers.KSampler.SCHEDULERS,
+        "PARAMETERS")
+    RETURN_NAMES = (
+        "image_width", "image_height", 'text_positive', 'text_negative', "sampler_name", "scheduler", "parameters")
     FUNCTION = "process"
 
     CATEGORY = "Mythical/UI/Inputs"
@@ -42,22 +45,29 @@ class MythicalInputParamaters:
             "required": {
                 "image_width": ("INT", {"default": 1024, "min": 0, "max": nodes.MAX_RESOLUTION, "step": 8}),
                 "image_height": ("INT", {"default": 1024, "min": 0, "max": nodes.MAX_RESOLUTION, "step": 8}),
+                "text_positive": ("STRING", {"default": "", "multiline": True}),
+                "text_negative": ("STRING", {"default": "", "multiline": True}),
                 "sampler_name": (comfy.samplers.KSampler.SAMPLERS,),
                 "scheduler": (comfy.samplers.KSampler.SCHEDULERS,)}
         }
 
-    def process(self, image_width, image_height, sampler_name, scheduler):
+    def process(self, image_width, image_height, text_positive, text_negative, sampler_name, scheduler):
         parameters = {}
         parameters["image_width"] = image_width
         parameters["image_height"] = image_height
+        parameters['text_positive'] = text_positive
+        parameters['text_negative'] = text_negative
         parameters["sampler_name"] = sampler_name
         parameters["scheduler"] = scheduler
-        return (image_width, image_height, sampler_name, scheduler, parameters)
+        return (image_width, image_height, text_positive, text_negative, sampler_name, scheduler, parameters)
 
 
 class MythicalParameterProcessor:
-    RETURN_TYPES = ("INT", "INT", comfy.samplers.KSampler.SAMPLERS, comfy.samplers.KSampler.SCHEDULERS, "PARAMETERS")
-    RETURN_NAMES = ("image_width", "image_height", "sampler_name", "scheduler", "parameters")
+    RETURN_TYPES = (
+    "INT", "INT", 'STRING', 'STRING', comfy.samplers.KSampler.SAMPLERS, comfy.samplers.KSampler.SCHEDULERS,
+    "PARAMETERS")
+    RETURN_NAMES = (
+        "image_width", "image_height", 'text_positive', 'text_negative', "sampler_name", "scheduler", "parameters")
     FUNCTION = "process"
 
     @classmethod
@@ -71,9 +81,11 @@ class MythicalParameterProcessor:
     CATEGORY = "Mythical/UI/Inputs"
 
     def process(self, parameters):
+        print(f"Received: {parameters}")
         return (
-        parameters["image_width"], parameters["image_height"], parameters["sampler_name"], parameters["scheduler"],
-        parameters
+            parameters["image_width"], parameters["image_height"], parameters['text_positive'],
+            parameters['text_negative'], parameters["sampler_name"], parameters["scheduler"],
+            parameters
         )
 
 
