@@ -31,13 +31,21 @@ import comfy.samplers
 
 class MythicalInputParamaters:
     RETURN_TYPES = (
-        "INT", "INT", 'STRING', 'STRING', comfy.samplers.KSampler.SAMPLERS, comfy.samplers.KSampler.SCHEDULERS, 'INT',
+        "INT",  # image_width
+        "INT",  # image_height
+        'STRING',  # text_positive
+        'STRING',  # text_negative
+        comfy.samplers.KSampler.SAMPLERS,
+        comfy.samplers.KSampler.SCHEDULERS,
         'INT',
+        'INT',
+        "FLOAT",
+        "FLOAT",
         "PARAMETERS"
     )
     RETURN_NAMES = (
         "image_width", "image_height", 'text_positive', 'text_negative', "sampler_name", "scheduler", "steps",
-        "refiner_start_step",
+        "refiner_start_step", "base_cfg", "refiner_cfg",
         "parameters"
     )
     FUNCTION = "process"
@@ -53,15 +61,17 @@ class MythicalInputParamaters:
                 "text_positive": ("STRING", {"default": "", "multiline": True}),
                 "text_negative": ("STRING", {"default": "", "multiline": True}),
                 "sampler_name": (comfy.samplers.KSampler.SAMPLERS, {"default": "dpmpp_sde_gpu"}),
-                "scheduler": (comfy.samplers.KSampler.SCHEDULERS,  {"default": "karras"}),
+                "scheduler": (comfy.samplers.KSampler.SCHEDULERS, {"default": "karras"}),
                 "steps": ("INT", {"default": 40}),
                 "refiner_start_step": ("INT", {"default": 25}),
+                "base_cfg": ("FLOAT", {"default": 7.0, "min": 0.0, "max": 30.0, "step": 0.5}),
+                "refiner_cfg": ("FLOAT", {"default": 4.0, "min": 0.0, "max": 30.0, "step": 0.5}),
 
             }
         }
 
     def process(self, image_width, image_height, text_positive, text_negative, sampler_name, scheduler, steps,
-                refiner_start_step):
+                refiner_start_step, base_cfg, refiner_cfg, ):
         parameters = {}
         parameters["image_width"] = image_width
         parameters["image_height"] = image_height
@@ -71,19 +81,23 @@ class MythicalInputParamaters:
         parameters["scheduler"] = scheduler
         parameters["steps"] = steps
         parameters["refiner_start_step"] = refiner_start_step
+        parameters["base_cfg"] = base_cfg
+        parameters["refiner_cfg"] = refiner_cfg
+
         return (
-        image_width, image_height, text_positive, text_negative, sampler_name, scheduler, steps, refiner_start_step,
-        parameters)
+            image_width, image_height, text_positive, text_negative, sampler_name, scheduler, steps, refiner_start_step,
+            base_cfg, refiner_cfg,
+            parameters)
 
 
 class MythicalParameterProcessor:
     RETURN_TYPES = (
         "INT", "INT", 'STRING', 'STRING', comfy.samplers.KSampler.SAMPLERS, comfy.samplers.KSampler.SCHEDULERS, 'INT',
-        'INT',
+        'INT', "FLOAT", "FLOAT",
         "PARAMETERS")
     RETURN_NAMES = (
         "image_width", "image_height", 'text_positive', 'text_negative', "sampler_name", "scheduler", "steps",
-        "refiner_start_step",
+        "refiner_start_step", "base_cfg", "refiner_cfg",
         "parameters")
     FUNCTION = "process"
 
@@ -102,7 +116,7 @@ class MythicalParameterProcessor:
         return (
             parameters["image_width"], parameters["image_height"], parameters['text_positive'],
             parameters['text_negative'], parameters["sampler_name"], parameters["scheduler"], parameters["steps"],
-            parameters["refiner_start_step"],
+            parameters["refiner_start_step"], parameters["base_cfg"], parameters["refiner_cfg"],
             parameters
         )
 
