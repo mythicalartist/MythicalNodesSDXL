@@ -27,6 +27,46 @@ SOFTWARE.
 """
 import nodes
 import comfy.samplers
+from nodes import KSampler
+
+
+
+class MythicalSampler:
+    @classmethod
+    def INPUT_TYPES(s):
+                return {
+                    "required":
+                    {
+                     "model": ("MODEL",),
+                     "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
+                     "steps": ("INT", {"default": 20, "min": 1, "max": 10000}),
+                     "cfg": ("FLOAT", {"default": 7.0, "min": 0.0, "max": 100.0}),
+                     "sampler_name": (comfy.samplers.KSampler.SAMPLERS,),
+                     "scheduler": (comfy.samplers.KSampler.SCHEDULERS,),
+                     "positive": ("CONDITIONING",),
+                     "negative": ("CONDITIONING",),
+                     "latent_image": ("LATENT",),
+                     "vae": ("VAE",),
+                     "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
+                     },
+                }
+    
+    CATEGORY = "Mythical/Sampling"
+
+    RETURN_TYPES = ("MODEL", "CONDITIONING", "CONDITIONING", "LATENT", "VAE", "IMAGE", )
+    RETURN_NAMES = ("MODEL", "CONDITIONING+", "CONDITIONING-", "LATENT", "VAE", "IMAGE", )
+    OUTPUT_NODE = True
+    FUNCTION = "sample"
+
+    def sample(self, model, seed, steps, cfg, sampler_name, scheduler, positive, negative,
+               latent_image, vae, denoise=1.0, prompt=None, add_noise=None, start_at_step=None, end_at_step=None,
+               return_with_leftover_noise=None):
+        
+       
+        samples = KSampler().sample(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent_image, denoise=denoise)
+        latent = samples[0]["samples"]
+        decoded_image = vae.decode(latent).cpu()
+        return model, positive, negative, {"samples": latent}, vae, decoded_image,
 
 
 class MythicalSDXLPromptEncoder:
@@ -49,7 +89,7 @@ class MythicalSDXLPromptEncoder:
     POS_ASCORE = 6.0
     NEG_ASCORE = 2.5
 
-    CATEGORY = "Searge/ClipEncoding"
+    CATEGORY = "Mythical/ClipEncoding"
 
     def encode(self, base_clip, refiner_clip, pos_g, neg_g, width, height):
 
@@ -216,7 +256,7 @@ class MythicalSamplerScheduler:
                              "scheduler": (comfy.samplers.KSampler.SCHEDULERS,)}}
 
     def get_names(self, sampler_name, scheduler):
-        return (image_width, image_height, sampler_name, scheduler)
+        return (sampler_name, scheduler)
 
 
 class MythicalWidthHeight:
@@ -240,6 +280,7 @@ class MythicalWidthHeight:
 
 
 NODE_CLASS_MAPPINGS = {
+    "MythicalSampler": MythicalSampler,
     "MythicalSDXLPromptEncoder": MythicalSDXLPromptEncoder,
     "MythicalInputParamaters": MythicalInputParamaters,
     "MythicalParameterProcessor": MythicalParameterProcessor,
@@ -250,6 +291,7 @@ NODE_CLASS_MAPPINGS = {
 # Human readable names for the nodes
 
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "MythicalSampler": "All in one Sampler",
     "MythicalSDXLPromptEncoder": "Simplified Prompt Encoder",
     "MythicalInputParamaters": "Input Parameters",
     "MythicalParameterProcessor": "Parameter Processor",
