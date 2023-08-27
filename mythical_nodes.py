@@ -29,7 +29,27 @@ import nodes
 import comfy.samplers
 from nodes import KSampler
 
+class MythicalPipe:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {"required": {
+                     "model": ("MODEL",),
+                     "clip": ("CLIP",),
+                     "vae": ("VAE",),
+                     "positive": ("CONDITIONING",),
+                     "negative": ("CONDITIONING",),
+                     },
+                }
 
+    RETURN_TYPES = ("MYTHICAL_PIPE", )
+    RETURN_NAMES = ("mythical_pipe", )
+    FUNCTION = "pipe_it"
+
+    CATEGORY = "Mythical/Pipe"
+
+    def pipe_it(self, model, clip, vae, positive, negative):
+        pipe = (model, clip, vae, positive, negative)
+        return (pipe, )
 
 class MythicalSampler:
     @classmethod
@@ -37,18 +57,16 @@ class MythicalSampler:
                 return {
                     "required":
                     {
-                     "model": ("MODEL",),
                      "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
                      "steps": ("INT", {"default": 20, "min": 1, "max": 10000}),
                      "cfg": ("FLOAT", {"default": 7.0, "min": 0.0, "max": 100.0}),
                      "sampler_name": (comfy.samplers.KSampler.SAMPLERS,),
                      "scheduler": (comfy.samplers.KSampler.SCHEDULERS,),
-                     "positive": ("CONDITIONING",),
-                     "negative": ("CONDITIONING",),
                      "latent_image": ("LATENT",),
-                     "vae": ("VAE",),
                      "denoise": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 1.0, "step": 0.01}),
-                     },
+                        "mythical_pipe": ("MYTHICAL_PIPE",),
+
+                    },
                 }
     
     CATEGORY = "Mythical/Sampling"
@@ -58,11 +76,11 @@ class MythicalSampler:
     OUTPUT_NODE = True
     FUNCTION = "sample"
 
-    def sample(self, model, seed, steps, cfg, sampler_name, scheduler, positive, negative,
-               latent_image, vae, denoise=1.0, prompt=None, add_noise=None, start_at_step=None, end_at_step=None,
+    def sample(self, mythical_pipe, seed, steps, cfg, sampler_name, scheduler, 
+               latent_image, denoise=1.0, prompt=None, add_noise=None, start_at_step=None, end_at_step=None,
                return_with_leftover_noise=None):
         
-       
+        model, _, vae, positive, negative = mythical_pipe
         samples = KSampler().sample(model, seed, steps, cfg, sampler_name, scheduler, positive, negative, latent_image, denoise=denoise)
         latent = samples[0]["samples"]
         decoded_image = vae.decode(latent).cpu()
@@ -280,6 +298,7 @@ class MythicalWidthHeight:
 
 
 NODE_CLASS_MAPPINGS = {
+    "MythicalPipe": MythicalPipe,
     "MythicalSampler": MythicalSampler,
     "MythicalSDXLPromptEncoder": MythicalSDXLPromptEncoder,
     "MythicalInputParamaters": MythicalInputParamaters,
@@ -291,6 +310,7 @@ NODE_CLASS_MAPPINGS = {
 # Human readable names for the nodes
 
 NODE_DISPLAY_NAME_MAPPINGS = {
+    "MythicalPipe": "Mythical Pipe",
     "MythicalSampler": "All in one Sampler",
     "MythicalSDXLPromptEncoder": "Simplified Prompt Encoder",
     "MythicalInputParamaters": "Input Parameters",
