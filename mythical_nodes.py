@@ -52,6 +52,22 @@ class MythicalSDXLPromptEncoder:
     CATEGORY = "Searge/ClipEncoding"
 
     def encode(self, base_clip, refiner_clip, pos_g, neg_g, width, height):
+
+        """
+        This method encodes the given prompts using the base and refiner CLIP models.
+
+        Parameters:
+        base_clip (CLIP): The base CLIP model used for encoding.
+        refiner_clip (CLIP): The refiner CLIP model used for encoding.
+        pos_g (str): The positive prompt for the base model.
+        neg_g (str): The negative prompt for the base model.
+        width (int): The width of the output image.
+        height (int): The height of the output image.
+
+        Returns:
+        tuple: A tuple containing the encoded prompts.
+        """
+
         empty = base_clip.tokenize("")
 
         # positive base prompt
@@ -82,14 +98,14 @@ class MythicalSDXLPromptEncoder:
 
 
         # positive refiner prompt
-        tokens3 = refiner_clip.tokenize(pos_r)
+        tokens3 = refiner_clip.tokenize(pos_g)
         cond3, pooled3 = refiner_clip.encode_from_tokens(tokens3, return_pooled=True)
-        res3 = [[cond3, {"pooled_output": pooled3, "aesthetic_score": POS_ASCORE, "width": width, "height": height}]]
+        res3 = [[cond3, {"pooled_output": pooled3, "aesthetic_score": MythicalSDXLPromptEncoder.POS_ASCORE, "width": width, "height": height}]]
 
         # negative refiner prompt
-        tokens4 = refiner_clip.tokenize(neg_r)
+        tokens4 = refiner_clip.tokenize(neg_g)
         cond4, pooled4 = refiner_clip.encode_from_tokens(tokens4, return_pooled=True)
-        res4 = [[cond4, {"pooled_output": pooled4, "aesthetic_score": NEG_ASCORE, "width": width, "height": height}]]
+        res4 = [[cond4, {"pooled_output": pooled4, "aesthetic_score": MythicalSDXLPromptEncoder.NEG_ASCORE, "width": width, "height": height}]]
 
         return (res1, res2, res3, res4, )
 
